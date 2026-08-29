@@ -1,0 +1,17 @@
+https://chatgpt.com/c/6a77794d-2494-83ee-842e-3dbafc43e1e6
+----- Continue my .NET microservices learning project --
+
+Goal:
+✓ Learn Microservices
+✓ Docker / Containers
+✓ RabbitMQ
+✓ Kubernetes
+✓ Cluster / Node / Pod
+✓ Configuration
+✓ Caching / Redis
+✓ Load balancing
+
+----------------- after done a task -----------
+After finish a significant piece of work, I have to say “Update my project progress.”
+
+

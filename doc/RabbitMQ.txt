@@ -1,0 +1,137 @@
+https://chatgpt.com/c/6a77794d-2494-83ee-842e-3dbafc43e1e6
+
+Create RabbitMQ in docker:
+Powershell: docker run -d --hostname rabbitmq-learning --name rabbitmq-learning -p 5672:5672 -p 15672:15672 rabbitmq:4-management
+
+
+Container name: rabbitmq-learning
+open: http://localhost:15672
+login: 
+Username: guest
+Password: guest
+
+--------------
+Producer → Exchange → Queue → Consumer  # Exchange = Post office
+
+OrderService
+   Producer
+      │
+      │ "OrderCreated"
+      ▼
+   Exchange
+      │
+      ▼
+    Queue
+      │
+      ▼
+InventoryService
+   Consumer
+
+------------
+OrderService = Producer
+RabbitMQ Exchange = receives the event
+RabbitMQ Queue = stores/routes the event for a consumer
+InventoryService = Consumer
+
+------------------ flow ------
+POST /api/orders  -> create order 2 item.
+      ↓
+Order saved in OrderDb
+      ↓
+OrderService publishes OrderCreated
+      ↓
+RabbitMQ
+      ↓
+InventoryService consumes/receives it
+      ↓
+Inventory stock decreases -> InventoryDb stock 20 → 18
+      ↓
+SaveChangesAsync succeeds
+       ↓
+ACK
+       ↓
+RabbitMQ removes message
+-------------
+                MESSAGE
+                   │
+                   ▼
+                  TRY
+                   │
+             Process order
+                   │
+           ┌───────┴───────┐
+           │               │
+        SUCCESS          ERROR
+           │               │
+           ▼               ▼
+          ACK             NACK
+           │               │
+           ▼               ▼
+       Remove it       requeue:true
+                           │
+                           ▼
+                    Put it back
+
+------------------  BasicNackAsync how works ------
+Message is in order-created
+        ↓
+InventoryService receives it
+        ↓
+Your code throws an exception
+        ↓
+catch runs
+        ↓
+BasicNackAsync(requeue: false)
+        ↓
+RabbitMQ says:"This message was rejected and should not go back."
+        ↓
+RabbitMQ checks queue settings
+        ↓
+Dead-letter settings exist
+        ↓
+Route message to order-created-dead-letter
+
+-------- Outbox Pattern: -------
+if RabbitMQ is temporarily down, and order created in DB. It will stay in the Order database and can be published later when RabbitMQ comes back.
+
+POST order
+   ↓
+Orders + OutboxMessages saved
+   ↓
+HTTP request finishes
+   ↓
+OutboxPublisherWorker runs in background
+   ↓
+find IsPublished = false
+   ↓
+try publish to RabbitMQ
+   ↓
+success → IsPublished = true
+failure → leave false and try again later
+
+----------------------- inventory service ---------
+Receive RabbitMQ message
+        ↓
+Deserialize OrderCreatedMessage
+        ↓
+Create fresh InventoryDbContext scope
+        ↓
+Check ProcessedMessages by MessageId
+        ↓
+Already processed?
+   ├── Yes → ACK + return
+   └── No
+        ↓
+Find Inventory row
+        ↓
+Begin DB transaction
+        ↓
+Reduce stock
+        +
+Save ProcessedMessage
+        ↓
+SaveChanges
+        ↓
+Commit transaction
+        ↓
+ACK RabbitMQ
