@@ -6,12 +6,22 @@ namespace OrderService.Messaging
 {
     public class RabbitMqPublisher
     {
+        private readonly IConfiguration _configuration;
+
+        public RabbitMqPublisher(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
         public async Task PublishOrderCreatedAsync(object message)
         {
-            // RabbitMQ running on localhost
+            /**  Read RabbitMQ host from configuration.
+              *  The value must be provided by configuration.
+              *  In Docker, RabbitMQ__HostName will be set to "rabbitmq-learning".
+              *  If the value is missing, the application throws an exception.
+              */
             var factory = new ConnectionFactory
             {
-                HostName = "localhost"
+                HostName = _configuration["RabbitMQ:HostName"] ?? throw new InvalidOperationException("RabbitMQ:HostName configuration is missing.")
             };
 
             // Creates the network connection between OrderService and RabbitMQ.

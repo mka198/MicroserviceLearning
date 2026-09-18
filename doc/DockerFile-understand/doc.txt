@@ -1,0 +1,120 @@
+# ===== BUILD STAGE =====
+# Start a temporary container environment containing the .NET 10 SDK, build gives this stage the name.
+# SDK image: Visual Studio -> build application
+# Stage name build. 
+# Build stage: Compile/build and publish the application.
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+
+# Inside the Docker build environment, create/use this src directory and make it the current working directory
+# From this point, commands run relative to /src.
+WORKDIR /src
+
+# This copies: my PC: OrderService.csproj into: the container: /src/OrderService.csproj
+# The ./ means copy it into the current WORKDIR that is: WORKDIR /src. ( ./ means /src)
+COPY ["OrderService.csproj", "./"]
+
+# Now Docker executes below command inside the container
+# This downloads/restores NuGet dependencies such as:Entity Framework Core,SQL Server provider,RabbitMQ.Client, Swashbuckle,etc. Check your .csproj file for the list of dependencies.
+# COPY .csproj -> dotnet restore -> NuGet packages available (all the dependencies)
+RUN dotnet restore "OrderService.csproj"
+
+# This means: Copy everything from the current OrderService directory from my PC into the current directory(/src) inside Docker.
+# OrderService/               /src/
+# ├── Controllers       →     ├── Controllers
+# ├── Data              →     ├── Data
+# ├── Messaging         →     ├── Messaging
+# ├── Models            →     ├── Models
+# ├── Program.cs        →     ├── Program.cs
+# └── ...                     └── ...
+COPY . .
+
+# This command builds the project and publishes the output to /app/publish inside the container.
+# dotnet publish -> Build the application and gather all the files needed to run it.
+# -c Release: specifies that the build should be done in Release configuration (as opposed to Debug).
+# -o /app/publish: specifies the output directory for the published files inside the container.
+# Docker has something roughly like:
+# /app/publish
+#   ├── OrderService.dll
+#   ├── OrderService.deps.json
+#   ├── OrderService.runtimeconfig.json
+#   ├── RabbitMQ.Client.dll
+#   ├── EF Core DLLs
+#   └── other dependencies
+# At this point, the application is built.
+RUN dotnet publish "OrderService.csproj" \
+    -c Release \
+    -o /app/publish
+
+
+# ===== RUNTIME STAGE =====
+
+# Many things are unnecessary when the application is actually running.
+# ex: 
+# Build environment
+# .NET SDK
+# compiler
+# build tools
+# NuGet tools
+# etc.
+
+# So we create a smaller runtime container. This starts a fresh container image containing only the ASP.NET Core runtime
+# Notice the difference:
+# First:
+# dotnet/sdk:10.0
+# Second:
+# dotnet/aspnet:10.0
+
+# SDK image vs runtime image
+# SDK image: Visual Studio -> build application
+# ASP.NET runtime image: production machine-> only run application. Contain published files only.
+# Stage name final
+# Final stage: Run the published application ( before this stage, the application is built and published in the build stage)
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+
+# Inside the final container: Make /app the working directory.
+# So now commands will run from: /app
+WORKDIR /app
+
+# Copy from: build stage /app/publish to final stage /app
+# Copy from /app/publish to /app
+# Here . means: current working directory inside the final container which is /app
+# COPY --from=build /app/publish . Copy from build image/stage /app/publish to final stage /app
+# The source code and full SDK do not come into the final container.
+# /app
+#   ├── OrderService.dll
+#   ├── OrderService.deps.json
+#   ├── OrderService.runtimeconfig.json
+#   └── dependencies...
+COPY --from=build /app/publish .
+
+# This tells Docker: When this container starts, automatically execute this command "dotnet OrderService.dll" inside the container. Equivalent to command: dotnet OrderService.dll. That starts ASP.NET Core OrderService
+# Locally we command: docker run, Docker eventually executes: dotnet OrderService.dll
+ENTRYPOINT ["dotnet", "OrderService.dll"]
+
+
+# Dockerfile Summary:
+# 1. Get .NET SDK
+# 2. Copy project file
+# 3. Restore NuGet packages
+# 4. Copy source code
+# 5. Publish application
+#  ↓
+# 6. Get smaller ASP.NET runtime
+# 7. Copy published application
+# 8. Run OrderService.dll
+
+#--------------- command ---------
+#--------------- Docker image commands ---------
+# -----1. Build image -----
+# Build a Docker image from the Dockerfile in the current folder.
+# -t gives the image a name/tag. 
+# docker build -t <image-name> .
+# Build a image in local Docker image store named: orderservice-learning
+# "." means use the current folder as the build context.
+powershell > : docker build -t orderservice-learning . 
+
+# ---- 2. Check the image is created successfully in  the local Docker image store
+powershell > : docker images
+
+# ---- 3. Run the image as a container
+powershell > : docker run --name orderservice-learning-container -p 8080:8080 -e ASPNETCORE_URLS=http://+:8080 orderservice-learning

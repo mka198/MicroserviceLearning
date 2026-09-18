@@ -1,0 +1,20 @@
+1. Create Docker network
+2. Create SQL Server container
+3. Connect existing RabbitMQ container to our network
+4. Create/migrate OrderDb in SQL Server container
+5. Run OrderService container successfully
+6. Containerize InventoryService
+7. Create/migrate InventoryDb
+8. Run InventoryService container
+9. Test OrderService → RabbitMQ → InventoryService
+10. Replace all these long commands with Docker Compose
+----
+Goal:
+✓ Learn Microservices
+✓ Docker / Containers
+✓ RabbitMQ
+✓ Kubernetes
+✓ Cluster / Node / Pod
+✓ Configuration
+✓ Caching / Redis
+✓ Load balancing

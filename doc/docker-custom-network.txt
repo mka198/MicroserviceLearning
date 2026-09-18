@@ -1,0 +1,29 @@
+https://chatgpt.com/c/6a77794d-2494-83ee-842e-3dbafc43e1e6
+------------------------------------------------
+Docker custom network:
+Allows containers to communicate with each other.
+
+Container name can be used as hostname.
+
+Example:
+OrderService → rabbitmq-learning
+OrderService → sqlserver-learning
+
+Inside a container, localhost means that same container.
+
+> docker network create microservice-learning-network  # Create a private Docker network
+> docker network ls # show list of docker network
+---------------- What is this network? ----
+Right now imagine several separate computers. They need a network to find and communicate with each other.
+1. OrderService container
+2. RabbitMQ container
+3. SQL Server container
+4. InventoryService container
+Our custom Docker network: microservice-learning-network, will put them on the same private Docker network.
+The very useful part is that containers can then use container names as host names.
+OrderService will be able to use: HostName = "orderservice-learning"
+Inside a container: localhost means this container itself
+-------------- step -------
+1. > docker network create microservice-learning-network  # Create a Docker network
+2. > docker network ls # show list of docker network
+

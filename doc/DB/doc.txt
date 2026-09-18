@@ -1,0 +1,41 @@
+1.  First start docker desktop and run sqlserver-learning container
+2. --------- sql server login -------
+Server name: 127.0.0.1,1433
+Authentication: SQL Server Authentication
+Login: sa
+Password: ContainerSql!
+---------
+
+--- create a SQL Server container and attach it to microservice-learning-network network. ------
+
+docker run -d  --name sqlserver-learning --network microservice-learning-network -e "ACCEPT_EULA=Y"  -e "MSSQL_SA_PASSWORD=ContainerSql!" -p 1433:1433  -v sqlserver-learning-data:/var/opt/mssql  mcr.microsoft.com/mssql/server:2022-latest
+
+--name sqlserver-learning # container name  
+--network microservice-learning-network # puts SQL Server on the same private Docker network
+-p 1433:1433 # maps Windows port 1433 to SQL Server's port 1433 inside the container.
+-v sqlserver-learning-data:/var/opt/mssql # creates persistent Docker storage.
+So even if the SQL Server container is removed later, the database files can remain in the Docker volume: sqlserver-learning-data
+Server=sqlserver-learning,1433 # Server hostname
+
+Now:
+Windows PC
+   │
+   │ port 1433
+   ▼
+SQL Server Docker container
+   name: sqlserver-learning
+   │
+   ├── attached to:
+   │   microservice-learning-network
+   │
+   └── persistent storage:
+       sqlserver-learning-data
+ 
+  Here:
+ mcr.microsoft.com/mssql/server:2022-latest
+                 ↓
+              IMAGE
+
+sqlserver-learning
+        ↓
+     CONTAINER

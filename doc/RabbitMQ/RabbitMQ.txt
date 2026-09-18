@@ -135,3 +135,71 @@ SaveChanges
 Commit transaction
         ↓
 ACK RabbitMQ
+
+-------------------- after Containerization. With container: OrderService, RabbitMQ ----------
+Postman (Create order)
+   ↓
+OrderService container
+   ↓
+Orders + OutboxMessages in SQL Server
+   ↓
+OutboxPublisherWorker
+   ↓
+RabbitMqPublisher
+   ↓
+rabbitmq-learning container
+   ↓
+order-created queue
+   ↓
+message waiting ✅
+
+--------------------- Create order -> publush RabbitMQ -> Consume inventory -----
+POST new Keyboard order (Quantity = 1)
+              ↓
+        OrderService
+              ↓
+     Order saved in OrderDb
+              ↓
+     OutboxMessage created
+              ↓
+   OutboxPublisherWorker
+              ↓
+          RabbitMQ
+              ↓
+      order-created queue
+              ↓
+       InventoryService
+              ↓
+   Duplicate check: MessageId = 2
+              ↓
+     Finds Keyboard inventory
+              ↓
+ Inventory: 20 → 19
+              ↓
+ ProcessedMessages inserted
+              ↓
+         RabbitMQ ACK
+              ↓
+      Message removed ✅
+
+      ------------
+┌──────────────────┐
+│   OrderService   │
+│    container     │
+└────────┬─────────┘
+         │
+         ├──────► SQL Server
+         │
+         ▼
+┌──────────────────┐
+│     RabbitMQ     │
+│    container     │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ InventoryService │
+│    container     │
+└────────┬─────────┘
+         │
+         └──────► SQL Server

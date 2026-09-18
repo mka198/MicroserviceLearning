@@ -1,0 +1,39 @@
+----- Order Service: Create Order: -------
+Postman
+   ↓
+localhost:8080
+   ↓
+OrderService container
+   ↓
+OrdersController
+   ↓
+sqlserver-learning container
+   ↓
+MicroserviceLearning_OrderDb
+   ↓
+Orders table ✅
+
+----------------- OrderService -> RabbitMQ --------
+POST /api/orders
+       ↓
+OrdersController
+       ↓
+SQL transaction
+ ┌─────┴──────────┐
+ ↓                ↓
+Orders        OutboxMessages
+Id = 1        IsPublished = 0
+                  ↓
+          transaction committed
+                  ↓
+       OutboxPublisherWorker
+                  ↓
+       RabbitMqPublisher
+                  ↓
+            RabbitMQ
+                  ↓
+      publisher confirmation
+                  ↓
+       IsPublished = 1  ✅
+
+------------- 

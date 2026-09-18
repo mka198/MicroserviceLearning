@@ -1,0 +1,1 @@
+> docker logs sqlserver-learning

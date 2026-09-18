@@ -1,0 +1,17 @@
+Docker network: microservice-learning-network
+
+┌─────────────────────┐
+│ SQL Server          │
+│ container           │
+│                     │
+│ OrderDb             │
+│ InventoryDb         │
+└─────────▲───────────┘
+          │
+     ┌────┴─────┐
+     │          │
+OrderService   InventoryService
+ container       container
+     │              ▲
+     ▼              │
+   RabbitMQ_container

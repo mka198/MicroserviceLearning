@@ -1,0 +1,7 @@
+  docker run --name inventoryservice-learning-container `
+  --network microservice-learning-network `
+  -p 8081:8080 `
+  -e "ASPNETCORE_URLS=http://+:8080" `
+  -e "ConnectionStrings__InventoryDbConStr=Server=sqlserver-learning,1433;Database=MicroserviceLearning_InventoryDb;User Id=sa;Password=ContainerSql!;TrustServerCertificate=True;" `
+  -e "RabbitMQ__HostName=rabbitmq-learning" `
+  inventoryservice-learning

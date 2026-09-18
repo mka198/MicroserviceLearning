@@ -1,0 +1,21 @@
+Postman / Browser
+http://localhost:8081
+        │
+        │ Windows port 8081
+        ▼
+      Docker
+        │
+        │ forwards 8081 → 8080
+        ▼
+┌─────────────────────────┐
+│ InventoryService        │
+│                         │
+│ listening on port 8080  │
+└─────────────────────────┘
+
+-------------
+Windows computer
+│
+├── localhost:8080 ──→ OrderService:8080
+│
+└── localhost:8081 ──→ InventoryService:8080

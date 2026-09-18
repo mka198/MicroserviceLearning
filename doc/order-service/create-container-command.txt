@@ -1,0 +1,7 @@
+docker run --name orderservice-learning-container `
+  --network microservice-learning-network `
+  -p 8080:8080 `
+  -e "ASPNETCORE_URLS=http://+:8080" `
+  -e "ConnectionStrings__OrderDbConStr=Server=sqlserver-learning,1433;Database=MicroserviceLearning_OrderDb;User Id=sa;Password=ContainerSql!;TrustServerCertificate=True;" `
+  -e "RabbitMQ__HostName=rabbitmq-learning" `
+  orderservice-learning

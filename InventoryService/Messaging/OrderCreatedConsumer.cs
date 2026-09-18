@@ -18,16 +18,20 @@ namespace InventoryService.Messaging
     public class OrderCreatedConsumer : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        public OrderCreatedConsumer(IServiceScopeFactory scopeFactory)
+        private readonly IConfiguration _configuration;
+        public OrderCreatedConsumer(IServiceScopeFactory scopeFactory, IConfiguration configuration)
         {
             _scopeFactory = scopeFactory;
+            _configuration = configuration;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // RabbitMQ running on localhost
+            // Read the RabbitMQ host from configuration.
+            // In Docker, RabbitMQ__HostName will be set to "rabbitmq-learning".
+            // If the configuration is missing, fail instead of silently using a wrong host.
             var factory = new ConnectionFactory
             {
-                HostName = "localhost"
+                HostName = _configuration["RabbitMQ:HostName"] ?? throw new InvalidOperationException("RabbitMQ:HostName configuration is missing.")
             };
 
             // Creates the network connection between InventoryService and RabbitMQ.
