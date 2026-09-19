@@ -14,3 +14,17 @@ https://chatgpt.com/c/6a77794d-2494-83ee-842e-3dbafc43e1e6
        + volume
        + ports
        + environment variables
+
+ Command: 
+> docker compose config  //validate compose file
+> docker compose up -d sqlserver //start only the sqlserver service from compose.yaml. sqlserver-> service name
+> docker compose up -d rabbitmq  // start only rabitmq service
+> docker compose ps
+> docker compose logs orderservice
+
+ docker compose up
+ docker compose down
+
+
+ -----
+ In Docker Compose, containers on the same Compose network can normally communicate using the Compose service name as the hostname.

@@ -39,3 +39,7 @@ SQL Server Docker container
 sqlserver-learning
         ↓
      CONTAINER
+
+---------- command -----
+> docker compose up -d sqlserver //start only the sqlserver service from compose.yaml. 
+> docker compose ps

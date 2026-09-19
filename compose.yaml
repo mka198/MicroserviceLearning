@@ -7,3 +7,49 @@ services:
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "${SQL_SA_PASSWORD}"
+
+    # ===== PORT SQL Hostport:Containerport =====
+    ports:
+      - "1433:1433"
+
+    # ===== PERSISTENT STORAGE =====
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+
+  rabbitmq:
+    image: rabbitmq:4-management
+
+    # ===== PORTS Hostport:Containerport =====
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    # ===== PERSISTENT STORAGE =====
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+   
+  orderservice:
+    # ===== BUILD OUR OWN IMAGE =====
+    build:
+      context: ./OrderService
+      dockerfile: Dockerfile
+    # ===== PORT Hostport:Containerport =====
+    ports:
+      - "8080:8080"    
+    # ===== ORDER SERVICE CONFIGURATION =====
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__OrderDbConStr: "Server=sqlserver,1433;Database=MicroserviceLearning_OrderDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True;"
+      RabbitMQ__HostName: "rabbitmq"    
+    # ===== SERVICE DEPENDENCIES =====
+    depends_on:
+      - sqlserver
+      - rabbitmq
+
+volumes:
+  sqlserver-data:
+    external: true
+    name: sqlserver-learning-data
+
+  rabbitmq-data:
