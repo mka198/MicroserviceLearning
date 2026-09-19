@@ -1,0 +1,34 @@
+https://chatgpt.com/c/6a77794d-2494-83ee-842e-3dbafc43e1e6
+
+1. docker build -t orderservice-learning .  # Create image
+	Dockerfile
+	    ↓
+	docker build
+	    ↓
+	IMAGE
+	orderservice-learning
+
+2. You can see the image under docker desktop:
+   docker images
+
+3. docker run  # Create a container from that existing image and start the container.
+
+So:
+
+Dockerfile
+     │
+     │ docker build
+     ▼
+┌─────────────────────────┐
+│ IMAGE                   │
+│ orderservice-learning   │
+└────────────┬────────────┘
+             │
+             │ docker run
+             ▼
+┌──────────────────────────────────┐
+│ CONTAINER                        │
+│ orderservice-learning-container  │
+│                                  │
+│ Running OrderService             │
+└──────────────────────────────────┘

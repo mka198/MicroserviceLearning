@@ -1,0 +1,49 @@
+What is the advantage of containerization? or run application in container?
+Ans: 
+Imagine an application build in .net10, C#-11, sqlserver  in Windows OS.  The application may have some other dependency with sepecific version.
+If you want to run this application in other computer, he has to install all these things to run the application, more over if the 
+OS is different(mac/linux), that might create more error/problem.
+
+Running in container, means running in seperate independent computer. That container has it own OS(light weight OS create during container creation), and then from dockerFile it will install everything inside container to run the application. You just need to put the
+code in certain place, thats all. Just two things you need, 1. Docker installed 2. The Docker Image (You do not even need source code). 
+This way your application become portable and error free.
+    
+      Docker Image
+          │
+          │ docker run
+          ▼
+       Container
+          │
+          ▼
+   Application running
+
+ • The main advantages are: Portability, Consistency, Easy deployment.
+ • Containerization makes an application more portable, consistent, isolated, and easier to deploy, while reducing environment-related problems.
+ • Containerization packages an application together with everything it needs to run, ensuring it behaves consistently across different environments while remaining lightweight and portable.
+
+ --------------------------- co-pilot -----------
+ What is the advantage of containerization?
+
+Imagine an application built with .NET 10, C# 11, SQL Server, and some specific library versions on Windows.
+
+Without containers, anyone who wants to run the application must:
+
+• Install the correct .NET version
+• Install SQL Server
+• Install all required dependencies
+• Configure environment settings
+• Ensure compatibility with the operating system
+
+If the application is moved to another machine or a different OS (Windows, Linux, macOS), version differences and missing dependencies can cause errors.
+
+With containerization, all required dependencies, runtime versions, and application configurations are packaged together into a Docker image.
+
+A Dockerfile describes how the image is built, including:
+
+• Base operating system image
+• .NET runtime
+• Required libraries
+• Application files
+• Configuration settings
+
+When someone runs the image, Docker creates a container that behaves the same way on any machine that has Docker installed.

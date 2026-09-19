@@ -1,0 +1,16 @@
+https://chatgpt.com/c/6a77794d-2494-83ee-842e-3dbafc43e1e6
+
+                   compose.yaml
+                        │
+          ┌─────────────┼─────────────┐
+          ▼             ▼             ▼
+     OrderService  InventoryService  RabbitMQ
+          │             │
+          └──────┬──────┘
+                 ▼
+             SQL Server
+
+       + network
+       + volume
+       + ports
+       + environment variables
