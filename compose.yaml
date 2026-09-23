@@ -46,6 +46,24 @@ services:
     depends_on:
       - sqlserver
       - rabbitmq
+  
+  inventoryservice:
+  # ===== BUILD OUR OWN IMAGE =====
+    build:
+      context: ./InventoryService
+      dockerfile: Dockerfile
+    # ===== PORT Hostport:Containerport =====
+    ports:
+      - "8081:8080"
+    # ===== INVENTORY SERVICE CONFIGURATION =====
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__InventoryDbConStr: "Server=sqlserver,1433;Database=MicroserviceLearning_InventoryDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True;"
+      RabbitMQ__HostName: "rabbitmq"
+    # ===== SERVICE DEPENDENCIES, depends_on: means start them first. if you run inventory service, docker compose Starts SQL Server and rabbitMQ if they arn't running  =====
+    depends_on:
+      - sqlserver
+      - rabbitmq
 
 volumes:
   sqlserver-data:
@@ -53,3 +71,6 @@ volumes:
     name: sqlserver-learning-data
 
   rabbitmq-data:
+    
+
+  
