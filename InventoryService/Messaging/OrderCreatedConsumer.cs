@@ -1,5 +1,6 @@
 ﻿using InventoryService.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -27,16 +28,63 @@ namespace InventoryService.Messaging
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             // Read the RabbitMQ host from configuration.
-            // In Docker, RabbitMQ__HostName will be set to "rabbitmq-learning".
+            // In Docker Compose, RabbitMQ__HostName is set to "rabbitmq",
+            // which is the RabbitMQ service name in compose.yaml.
             // If the configuration is missing, fail instead of silently using a wrong host.
             var factory = new ConnectionFactory
             {
                 HostName = _configuration["RabbitMQ:HostName"] ?? throw new InvalidOperationException("RabbitMQ:HostName configuration is missing.")
             };
 
-            // Creates the network connection between InventoryService and RabbitMQ.
-            var connection = await factory.CreateConnectionAsync();
-            var channel = await connection.CreateChannelAsync();
+            // Try to establish the initial connection to RabbitMQ.
+            //
+            // RabbitMQ automatic recovery helps if an EXISTING connection is lost,
+            // but it does not solve the case where RabbitMQ is unavailable when
+            // InventoryService starts.
+            //
+            // Therefore, keep trying until RabbitMQ becomes available
+            // or InventoryService is asked to stop.
+            IConnection? connection = null;
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    connection = await factory.CreateConnectionAsync();
+                    Console.WriteLine("Connected to RabbitMQ.");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"RabbitMQ is unavailable. Retrying in 5 seconds. Error: {ex.Message}");
+
+                    try
+                    {
+                        await Task.Delay(
+                            TimeSpan.FromSeconds(5),
+                            stoppingToken);
+                    }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    {
+                        // InventoryService is shutting down normally.
+                        return;
+                    }
+                }
+            }
+
+            if (connection is null)
+            {
+                return;
+            }
+
+
+            // Enable publisher confirms on this channel.
+            //
+            // InventoryService sometimes republishes a failed message to the retry queue.
+            // Publisher confirms allow BasicPublishAsync() to wait for RabbitMQ to
+            // confirm the publication before we ACK/remove the original message.
+            var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
+            var channel = await connection.CreateChannelAsync(channelOptions);
 
             await channel.QueueDeclareAsync(
                 queue: "order-created-dead-letter",
@@ -48,6 +96,34 @@ namespace InventoryService.Messaging
                 { "x-dead-letter-exchange", "" },
                 { "x-dead-letter-routing-key", "order-created-dead-letter" }
             };
+
+            // RETRY QUEUE:
+            // Messages that fail because of a temporary problem can be placed here.
+            //
+            // x-message-ttl:
+            // Keep the message in this retry queue for 10 seconds.
+            //
+            // x-dead-letter-exchange = "":
+            // After 10 seconds, use RabbitMQ's default exchange.
+            //
+            // x-dead-letter-routing-key = "order-created":
+            // Send the message back to the original order-created queue
+            // so InventoryService can try processing it again.
+            var retryQueueArguments = new Dictionary<string, object?>
+            {
+                { "x-message-ttl", 10000 },
+                { "x-dead-letter-exchange", "" },
+                { "x-dead-letter-routing-key", "order-created" }
+            };
+
+            await channel.QueueDeclareAsync(
+                queue: "order-created-retry",
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: retryQueueArguments);
+
+
 
             // Declare the queue to ensure it exists before we try to consume from it.
             // This is idempotent, so it won't create a new queue if it already exists. RabbitMQ will not create a duplicate queue.
@@ -62,6 +138,10 @@ namespace InventoryService.Messaging
                 autoDelete: false,
                 arguments: arguments);
 
+            // Maximum number of times a message may be retried
+            // for a temporary failure before it is sent to the dead-letter queue.
+            const int maxRetryCount = 3;
+
             // CONSUMER:
             // Create a consumer that will listen for messages arriving in RabbitMQ.
             var consumer = new AsyncEventingBasicConsumer(channel);
@@ -71,6 +151,14 @@ namespace InventoryService.Messaging
             // from the "order-created" queue to this consumer.
             consumer.ReceivedAsync += async (sender, args) =>
             {
+                // Read how many times this message has already been retried.
+                // A new message has no x-retry-count header, so it starts at 0.
+                var retryCount = 0;
+
+                if (args.BasicProperties.Headers is not null && args.BasicProperties.Headers.TryGetValue("x-retry-count", out var retryHeader) && retryHeader is int retryHeaderValue)
+                {
+                    retryCount = retryHeaderValue;
+                }
                 try
                 {
                     var body = args.Body.ToArray(); //RabbitMQ sends the message body as bytes.
@@ -81,13 +169,13 @@ namespace InventoryService.Messaging
 
                     var orderMessage = JsonSerializer.Deserialize<OrderCreatedMessage>(message);
                     if (orderMessage is null)
-                    { 
+                    {
                         throw new Exception("Could not deserialize OrderCreated message.");
                     }
 
                     using var scope = _scopeFactory.CreateScope();
 
-                    var dbContext =  scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
 
                     // ===== DUPLICATE CHECK =====
                     // stoppingToken parameter: Pass stoppingToken so EF Core can stop this database operation gracefully, if InventoryService is shutting down or the BackgroundService is being cancelled.
@@ -143,6 +231,66 @@ namespace InventoryService.Messaging
                         multiple: false);
 
                     Console.WriteLine($"SUCCESS: {orderMessage.Product} stock reduced by {orderMessage.Quantity}");
+                }
+                catch (InvalidOperationException ex) when (ex.InnerException is SqlException)
+                {
+                    Console.WriteLine($"Temporary SQL error. Retry count: {retryCount}. Error: {ex.Message}");
+
+                    if (retryCount < maxRetryCount)
+                    {
+                        // Create properties for the new retry message.
+                        var retryProperties = new BasicProperties
+                        {
+                            Persistent = true,
+                            Headers = new Dictionary<string, object?>
+                            {
+                                { "x-retry-count", retryCount + 1 }
+                            }
+                        };
+                        try
+                        {
+
+                            // Publish the same message body to the retry queue.
+                            // The retry queue waits 10 seconds and then sends the message
+                            // back to "order-created" for another processing attempt.
+                            await channel.BasicPublishAsync(
+                            exchange: "",
+                            routingKey: "order-created-retry",
+                            mandatory: false,
+                            basicProperties: retryProperties,
+                            body: args.Body);
+
+                            // RabbitMQ confirmed the retry copy was accepted,
+                            // so it is now safe to ACK/remove the original message.
+                            await channel.BasicAckAsync(
+                                deliveryTag: args.DeliveryTag,
+                                multiple: false);
+
+                            Console.WriteLine($"Message sent to retry queue. Retry {retryCount + 1} of {maxRetryCount}.");
+                        }
+                        catch (Exception publishException)
+                        {
+                            Console.WriteLine(
+                                $"ERROR publishing message to retry queue: {publishException.Message}");
+
+                            // IMPORTANT:
+                            // Do not ACK the original message here.
+                            // We could not confirm that the retry copy was safely published.
+                        }
+                    }
+                    else
+                    {
+                        // Maximum retries reached.
+                        // Reject the current message without requeueing it.
+                        // The dead-letter configuration on "order-created"
+                        // sends it to "order-created-dead-letter".
+                        await channel.BasicNackAsync(
+                            deliveryTag: args.DeliveryTag,
+                            multiple: false,
+                            requeue: false);
+
+                        Console.WriteLine($"Maximum retry count ({maxRetryCount}) reached. Message sent to DLQ.");
+                    }
                 }
                 catch (Exception ex)
                 {
