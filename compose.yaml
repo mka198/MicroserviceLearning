@@ -15,6 +15,13 @@ services:
     # ===== PERSISTENT STORAGE =====
     volumes:
       - sqlserver-data:/var/opt/mssql
+    # ===== HEALTH CHECK =====
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
 
   rabbitmq:
@@ -28,6 +35,14 @@ services:
     # ===== PERSISTENT STORAGE =====
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    
+    # ===== HEALTH CHECK =====
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
    
   orderservice:
     # ===== BUILD OUR OWN IMAGE =====
@@ -42,10 +57,13 @@ services:
       ASPNETCORE_URLS: "http://+:8080"
       ConnectionStrings__OrderDbConStr: "Server=sqlserver,1433;Database=MicroserviceLearning_OrderDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True;"
       RabbitMQ__HostName: "rabbitmq"    
-    # ===== SERVICE DEPENDENCIES =====
+    # ===== SERVICE DEPENDENCIES, depends_on: means start them first. if you run order service, docker compose Starts SQL Server and rabbitMQ if they arn't running. 
+    # Condition means: SQL Server → wait until container is healthy,  RabbitMQ   → wait until RabbitMQ is healthy  =====
     depends_on:
-      - sqlserver
-      - rabbitmq
+      sqlserver:
+       condition: service_healthy
+      rabbitmq:
+       condition: service_healthy
   
   inventoryservice:
   # ===== BUILD OUR OWN IMAGE =====
@@ -60,10 +78,13 @@ services:
       ASPNETCORE_URLS: "http://+:8080"
       ConnectionStrings__InventoryDbConStr: "Server=sqlserver,1433;Database=MicroserviceLearning_InventoryDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True;"
       RabbitMQ__HostName: "rabbitmq"
-    # ===== SERVICE DEPENDENCIES, depends_on: means start them first. if you run inventory service, docker compose Starts SQL Server and rabbitMQ if they arn't running  =====
+    # ===== SERVICE DEPENDENCIES, depends_on: means start them first. if you run inventory service, docker compose Starts SQL Server and rabbitMQ if they arn't running. 
+    # Condition means: SQL Server → wait until container is healthy,  RabbitMQ   → wait until RabbitMQ is healthy  =====
     depends_on:
-      - sqlserver
-      - rabbitmq
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   sqlserver-data:

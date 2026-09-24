@@ -33,42 +33,49 @@ namespace OrderService.Messaging
              */
             while (!stoppingToken.IsCancellationRequested)
             {
-                using (var scope = _scopeFactory.CreateScope())
+                try
                 {
-                    var dbContext =
-                        scope.ServiceProvider.GetRequiredService<OrderDbContext>();
-
-                    var unpublishedMessages = await dbContext.OutboxMessages
-                        .Where(message => !message.IsPublished)
-                        .Take(10)
-                        .ToListAsync(stoppingToken);
-
-                    foreach (var message in unpublishedMessages)
+                    using (var scope = _scopeFactory.CreateScope())
                     {
-                        try
-                        {
-                            var payload = JsonSerializer.Deserialize<JsonElement>(message.Payload);
+                        var dbContext =
+                            scope.ServiceProvider.GetRequiredService<OrderDbContext>();
 
-                            var eventToPublish = new
+                        var unpublishedMessages = await dbContext.OutboxMessages
+                            .Where(message => !message.IsPublished)
+                            .Take(10)
+                            .ToListAsync(stoppingToken);
+
+                        foreach (var message in unpublishedMessages)
+                        {
+                            try
                             {
-                                MessageId = message.Id, // Table OutboxMessage.Id as MessageId
-                                Id = payload.GetProperty("Id").GetInt32(), //OrderId
-                                Product = payload.GetProperty("Product").GetString(),
-                                Quantity = payload.GetProperty("Quantity").GetInt32()
-                            };
+                                var payload = JsonSerializer.Deserialize<JsonElement>(message.Payload);
 
-                            await _publisher.PublishOrderCreatedAsync(eventToPublish); // Publish the message to RabbitMQ
+                                var eventToPublish = new
+                                {
+                                    MessageId = message.Id, // Table OutboxMessage.Id as MessageId
+                                    Id = payload.GetProperty("Id").GetInt32(), //OrderId
+                                    Product = payload.GetProperty("Product").GetString(),
+                                    Quantity = payload.GetProperty("Quantity").GetInt32()
+                                };
 
-                            message.IsPublished = true; //IsPublished is set to true in DB after successful publishing to RabbitMQ
-                            await dbContext.SaveChangesAsync(stoppingToken);
+                                await _publisher.PublishOrderCreatedAsync(eventToPublish); // Publish the message to RabbitMQ
+
+                                message.IsPublished = true; //IsPublished is set to true in DB after successful publishing to RabbitMQ
+                                await dbContext.SaveChangesAsync(stoppingToken);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(
+                                    $"Could not publish outbox message {message.Id}: {ex.Message}");
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(
-                                $"Could not publish outbox message {message.Id}: {ex.Message}");
-                        }
-                    }
-                } // scope and OrderDbContext are disposed HERE
+                    } // scope and OrderDbContext are disposed HERE
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Outbox worker error: {ex.Message}");
+                }
 
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }

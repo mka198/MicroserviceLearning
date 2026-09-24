@@ -18,3 +18,4 @@ Goal:
 ✓ Configuration
 ✓ Caching / Redis
 ✓ Load balancing
+✓ Aspire

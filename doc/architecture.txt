@@ -15,3 +15,50 @@ OrderService   InventoryService
      │              ▲
      ▼              │
    RabbitMQ_container
+
+
+   ------------------- xxxxxx -----------
+   POST Order (http://localhost:8080/api/orders)
+   │
+   ▼
+OrderService :8080 
+   │
+   ├── Order saved to Order DB
+   └── OutboxMessage created
+             │
+             ▼
+      OutboxPublisherWorker
+             │
+             ▼
+         RabbitMQ
+       order-created
+             │
+             ▼
+   InventoryService :8080
+             │
+             ▼
+      Inventory DB
+             │
+             ▼
+Keyboard: 19 → 18 (inventory decreases after new order) 
+
+------------xxxxxxxxxxx ------
+Order 1002 created
+       ↓
+Order + Outbox saved
+       ↓
+RabbitMQ publishes MessageId 1002
+       ↓
+InventoryService receives it
+       ↓
+Checks ProcessedMessages
+       ↓
+1002 not found → process it
+       ↓
+Keyboard 19 → 18
+       ↓
+ProcessedMessages adds 1002
+       ↓
+ACK message
+       ↓
+DONE ✅

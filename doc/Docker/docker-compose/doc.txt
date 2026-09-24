@@ -21,12 +21,17 @@ https://chatgpt.com/c/6a77794d-2494-83ee-842e-3dbafc43e1e6
 > docker compose up -d --build inventoryservice  // build and start inventory service
 > docker compose start orderservice // start existing container. It does not build or create container.
 > docker compose up -d sqlserver //start only the sqlserver service from compose.yaml. sqlserver-> service name
-> docker compose up -d rabbitmq  // start only rabitmq service
-> docker compose ps // shows running container
+> docker compose up -d rabbitmq  // start only rabitmq service container
+> docker compose stop orderservice // stop container
+> docker compose stop sqlserver
+> docker compose start sqlserver
+> docker compose stop inventoryservice rabbitmq  // stop 2 services(inventoryservice and rabbitmq )
 > docker compose logs inventoryservice
 > docker compose logs orderservice 
 > docker compose up
+> docker compose up -d
 > docker compose down
+> docker compose ps // shows running container
 
 | Situation                                                      | Command                                     |
 | -------------------------------------------------------------- | ------------------------------------------- |
@@ -41,3 +46,17 @@ https://chatgpt.com/c/6a77794d-2494-83ee-842e-3dbafc43e1e6
 
  -----
  In Docker Compose, containers on the same Compose network can normally communicate using the Compose service name as the hostname.
+ ---------------
+                  Docker Compose
+┌─────────────────────────────────────────┐
+│                                         │
+│  OrderService ──────► RabbitMQ          │
+│       │                  │              │
+│       ▼                  ▼              │
+│   Order DB        InventoryService      │
+│                          │              │
+│                          ▼              │
+│                     Inventory DB        │
+│                                         │
+└─────────────────────────────────────────┘
+              SQL Server
