@@ -62,3 +62,32 @@ ProcessedMessages adds 1002
 ACK message
        ↓
 DONE ✅
+
+------------------------------------
+OrderService
+   │
+   ├─ Order DB
+   └─ Outbox
+        ↓
+     RabbitMQ
+        ↓
+InventoryService
+   │
+   ├─ Idempotent Consumer
+   ├─ SQL Retry Queue
+   ├─ Publisher Confirms
+   ├─ ACK / NACK
+   ├─ DLQ
+   └─ Inventory DB
+
+Docker Compose
+   ├─ SQL Server
+   ├─ RabbitMQ
+   ├─ OrderService
+   └─ InventoryService
+
+Health
+   ├─ /health/live
+   └─ /health/ready
+       ├─ SQL Server
+       └─ RabbitMQ

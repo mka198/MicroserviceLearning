@@ -1,0 +1,9 @@
+                    Same image
+                       │
+        ┌──────────────┴──────────────┐
+        ▼                             ▼
+ Docker Compose                  Kubernetes
+        │                             │
+   Container                         Pod
+        │                             │
+ InventoryService              InventoryService

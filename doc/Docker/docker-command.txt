@@ -1,1 +1,3 @@
 > docker logs sqlserver-learning
+> docker images <image-name>
+> docker images microservicelearning-inventoryservice

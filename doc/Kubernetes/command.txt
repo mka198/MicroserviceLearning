@@ -1,0 +1,7 @@
+> kubectl version --client
+> kubectl cluster-info
+> kubectl get nodes 
+> kubectl get pods -A   //-A means all namespaces
+> kubectl run my-first-pod --image=nginx // pod created name my-first-pod, inside pod there is image
+> kubectl get pods
+> kubectl describe pod my-first-pod //

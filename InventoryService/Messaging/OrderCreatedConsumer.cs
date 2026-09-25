@@ -20,10 +20,13 @@ namespace InventoryService.Messaging
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IConfiguration _configuration;
-        public OrderCreatedConsumer(IServiceScopeFactory scopeFactory, IConfiguration configuration)
+        private readonly ILogger<OrderCreatedConsumer> _logger;
+        private const int RetryDelaySeconds = 5; // Wait 5 seconds before trying to connect to RabbitMQ again.
+        public OrderCreatedConsumer(IServiceScopeFactory scopeFactory, IConfiguration configuration, ILogger<OrderCreatedConsumer> logger)
         {
             _scopeFactory = scopeFactory;
             _configuration = configuration;
+            _logger = logger;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -51,17 +54,20 @@ namespace InventoryService.Messaging
                 try
                 {
                     connection = await factory.CreateConnectionAsync();
-                    Console.WriteLine("Connected to RabbitMQ.");
+                    _logger.LogInformation("Connected to RabbitMQ.");
                     break;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"RabbitMQ is unavailable. Retrying in 5 seconds. Error: {ex.Message}");
+                    _logger.LogWarning(
+                        ex,
+                        "RabbitMQ is unavailable. Retrying in {RetryDelaySeconds} seconds.",
+                        RetryDelaySeconds);
 
                     try
                     {
                         await Task.Delay(
-                            TimeSpan.FromSeconds(5),
+                            TimeSpan.FromSeconds(RetryDelaySeconds),
                             stoppingToken);
                     }
                     catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -164,14 +170,17 @@ namespace InventoryService.Messaging
                     var body = args.Body.ToArray(); //RabbitMQ sends the message body as bytes.
                     var message = Encoding.UTF8.GetString(body); // Convert bytes -> readable UTF-8 JSON/text.
 
-                    Console.WriteLine($"Received message: {message}");
-
-
                     var orderMessage = JsonSerializer.Deserialize<OrderCreatedMessage>(message);
                     if (orderMessage is null)
                     {
                         throw new Exception("Could not deserialize OrderCreated message.");
                     }
+
+                    _logger.LogInformation(
+                        "Received OrderCreated message. MessageId: {MessageId}, Product: {Product}, Quantity: {Quantity}",
+                        orderMessage.MessageId,
+                        orderMessage.Product,
+                        orderMessage.Quantity);
 
                     using var scope = _scopeFactory.CreateScope();
 
@@ -184,8 +193,9 @@ namespace InventoryService.Messaging
 
                     if (alreadyProcessed)
                     {
-                        Console.WriteLine(
-                            $"Duplicate message ignored. MessageId: {orderMessage.MessageId}");
+                        _logger.LogInformation(
+                            "Duplicate message ignored. MessageId: {MessageId}",
+                            orderMessage.MessageId);
 
                         await channel.BasicAckAsync(
                             deliveryTag: args.DeliveryTag,
@@ -230,11 +240,18 @@ namespace InventoryService.Messaging
                         deliveryTag: args.DeliveryTag,
                         multiple: false);
 
-                    Console.WriteLine($"SUCCESS: {orderMessage.Product} stock reduced by {orderMessage.Quantity}");
+                    _logger.LogInformation(
+                        "Inventory updated successfully. MessageId: {MessageId}, Product: {Product}, QuantityReduced: {QuantityReduced}",
+                        orderMessage.MessageId,
+                        orderMessage.Product,
+                        orderMessage.Quantity);
                 }
                 catch (InvalidOperationException ex) when (ex.InnerException is SqlException)
                 {
-                    Console.WriteLine($"Temporary SQL error. Retry count: {retryCount}. Error: {ex.Message}");
+                    _logger.LogWarning(
+                        ex,
+                        "Temporary SQL error while processing message. RetryCount: {RetryCount}",
+                        retryCount);
 
                     if (retryCount < maxRetryCount)
                     {
@@ -266,12 +283,11 @@ namespace InventoryService.Messaging
                                 deliveryTag: args.DeliveryTag,
                                 multiple: false);
 
-                            Console.WriteLine($"Message sent to retry queue. Retry {retryCount + 1} of {maxRetryCount}.");
+                            _logger.LogInformation($"Message sent to retry queue. Retry {retryCount + 1} of {maxRetryCount}.");
                         }
                         catch (Exception publishException)
                         {
-                            Console.WriteLine(
-                                $"ERROR publishing message to retry queue: {publishException.Message}");
+                            _logger.LogError($"ERROR publishing message to retry queue: {publishException.Message}");
 
                             // IMPORTANT:
                             // Do not ACK the original message here.
@@ -289,12 +305,12 @@ namespace InventoryService.Messaging
                             multiple: false,
                             requeue: false);
 
-                        Console.WriteLine($"Maximum retry count ({maxRetryCount}) reached. Message sent to DLQ.");
+                        _logger.LogWarning($"Maximum retry count ({maxRetryCount}) reached. Message sent to DLQ.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"ERROR processing message: {ex.Message}");
+                    _logger.LogError($"ERROR processing message: {ex.Message}");
 
                     // NACK = processing failed.
                     // requeue: false means:
