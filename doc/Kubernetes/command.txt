@@ -1,7 +1,18 @@
 > kubectl version --client
 > kubectl cluster-info
 > kubectl get nodes 
-> kubectl get pods -A   //-A means all namespaces
+> kubectl get pods -A   // A means all namespaces
 > kubectl run my-first-pod --image=nginx // pod created name my-first-pod, inside pod there is image
 > kubectl get pods
-> kubectl describe pod my-first-pod //
+> kubectl get services
+> kubectl describe pod my-first-pod 
+> kubectl describe service nginx-service
+-----
+> kubectl apply -f .\k8s\nginx-pod.yaml
+> kubectl apply -f .\k8s\nginx-service.yaml
+> kubectl apply -f .\k8s\nginx-deployment.yaml
+Meaning:
+kubectl apply → create or update what the file describes.
+-f → use a file.
+.\k8s\nginx-pod.yaml → the file(path + name) to use.
+

@@ -1,0 +1,5 @@
+1. kubectl apply -f .\k8s\nginx-deployment.yaml  
+2. kubectl apply -f .\k8s\nginx-service.yaml
+3. kubectl get pods
+4. kubectl port-forward service/nginx-service 8085:80  // Open nginx:
+4. Browser: http://localhost:8085

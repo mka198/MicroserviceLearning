@@ -60,3 +60,8 @@ https://chatgpt.com/c/6a77794d-2494-83ee-842e-3dbafc43e1e6
 │                                         │
 └─────────────────────────────────────────┘
               SQL Server
+
+---------------- What is docker compose.yml file ------
+In a microservices application, a compose.yml (or docker-compose.yml) file is used to define and run multiple containers together.
+
+Instead of starting each microservice, database, cache, and other components manually, you describe them in one file and start everything with a single command: docker compose up

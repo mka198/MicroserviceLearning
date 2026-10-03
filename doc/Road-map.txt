@@ -1,3 +1,4 @@
+----- Continue my .NET microservices learning project --
 1. Create Docker network
 2. Create SQL Server container
 3. Connect existing RabbitMQ container to our network
@@ -8,14 +9,29 @@
 8. Run InventoryService container
 9. Test OrderService → RabbitMQ → InventoryService
 10. Replace all these long commands with Docker Compose
-----
+------------
 Goal:
-✓ Learn Microservices
-✓ Docker / Containers
-✓ RabbitMQ
-✓ Kubernetes
-✓ Cluster / Node / Pod
-✓ Configuration
-✓ Caching / Redis
-✓ Load balancing
-✓ Aspire
+1. Learn Microservices
+2. Docker / Containers
+3. RabbitMQ
+4. Kubernetes
+5. Cluster / Node / Pod
+6. Configuration
+7. Caching / Redis
+8. Load balancing
+9. Aspire
+
+-----------
+Contaioner/Docker, kubernetes, Message Queue(rabbitMQ/or Kafka whatever better suit), overall microservice.
+Cluster,Node,Pod, config file, cacheing, load balance all I want to understand.
+application .net.
+I have .net installed, docker desktop installed in my PC.
+
+objective is to understand all above and microservice. I want to do it locally first.
+Small application some data, not complex or much data. Real application for learning purpose.
+Very easy way step by step. Don't give everything together, give me small things and Once I done it and understand,
+then you give me the next. You have to keep the track, becoz it may take time and you have to remeber where I am in that project.
+So that you can give me the next lesson/or code. You can give me a referance you want to keep it for memory.
+
+anyway ask me whatever you need including what to install or not. I have docker desktop installed and I am using PC,
+so better would be microsoft technology.
