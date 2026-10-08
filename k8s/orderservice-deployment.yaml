@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: orderservice-deployment
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: orderservice
+
+  template:
+    metadata:
+      labels:
+        app: orderservice
+
+    spec:
+      containers:
+        - name: orderservice
+          image: kabsoft/microservicelearning-orderservice:v2
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+
+          # Checks whether OrderService itself is alive.
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          # Checks whether OrderService can connect to SQL Server.
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          env:
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+
+            - name: RabbitMQ__HostName
+              value: "host.docker.internal"
+
+            - name: ConnectionStrings__OrderDbConStr
+              valueFrom:
+                secretKeyRef:
+                  name: orderservice-secrets
+                  key: order-db-connection-string

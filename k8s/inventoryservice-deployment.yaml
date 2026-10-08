@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: inventoryservice-deployment
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: inventoryservice
+
+  template:
+    metadata:
+      labels:
+        app: inventoryservice
+
+    spec:
+      containers:
+        - name: inventoryservice
+          image: kabsoft/microservicelearning-inventoryservice:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+
+          # Checks whether the application is alive.
+          # Kubernetes restarts the container if this repeatedly fails.
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          # Checks whether the application is ready to receive requests.
+          # A failing pod is temporarily removed from the Service.
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          env:
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+
+            - name: RabbitMQ__HostName
+              value: "host.docker.internal"
+
+            - name: ConnectionStrings__InventoryDbConStr
+              valueFrom:
+                secretKeyRef:
+                  name: inventoryservice-secrets
+                  key: inventory-db-connection-string
