@@ -34,9 +34,24 @@ namespace InventoryService.Messaging
             // In Docker Compose, RabbitMQ__HostName is set to "rabbitmq",
             // which is the RabbitMQ service name in compose.yaml.
             // If the configuration is missing, fail instead of silently using a wrong host.
+            //var factory = new ConnectionFactory
+            //{
+            //    HostName = _configuration["RabbitMQ:HostName"] ?? throw new InvalidOperationException("RabbitMQ:HostName configuration is missing.")
+            //};
+
             var factory = new ConnectionFactory
             {
-                HostName = _configuration["RabbitMQ:HostName"] ?? throw new InvalidOperationException("RabbitMQ:HostName configuration is missing.")
+                HostName = _configuration["RabbitMQ:HostName"]
+                ?? throw new InvalidOperationException(
+                    "RabbitMQ:HostName configuration is missing."),
+
+                UserName = _configuration["RabbitMQ:UserName"]
+                ?? throw new InvalidOperationException(
+                    "RabbitMQ:UserName configuration is missing."),
+
+                Password = _configuration["RabbitMQ:Password"]
+                ?? throw new InvalidOperationException(
+                    "RabbitMQ:Password configuration is missing.")
             };
 
             // Try to establish the initial connection to RabbitMQ.

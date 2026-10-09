@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: rabbitmq-service
+
+spec:
+  selector:
+    app: rabbitmq
+
+  ports:
+    # Used by OrderService and InventoryService
+    - name: messaging
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+
+    # RabbitMQ Management website
+    - name: management
+      protocol: TCP
+      port: 15672
+      targetPort: 15672
+
+  type: ClusterIP

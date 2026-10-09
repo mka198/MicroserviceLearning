@@ -1,0 +1,7 @@
+Postman
+  → OrderService pod
+  → Order database + Outbox
+  → Kubernetes RabbitMQ
+  → InventoryService pod
+  → Inventory database
+  → ProcessedMessages

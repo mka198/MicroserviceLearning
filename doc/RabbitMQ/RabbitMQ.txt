@@ -10,6 +10,11 @@ login:
 Username: guest
 Password: guest
 
+----Kubernetes RabbitMQ: ---
+User: microservice-user
+pass:123456
+---
+
 --------------
 Producer → Exchange → Queue → Consumer  # Exchange = Post office
 

@@ -19,16 +19,31 @@ namespace OrderService.Messaging
               *  In Docker, RabbitMQ__HostName will be set to "rabbitmq-learning".
               *  If the value is missing, the application throws an exception.
               */
+            //var factory = new ConnectionFactory
+            //{
+            //    HostName = _configuration["RabbitMQ:HostName"] ?? throw new InvalidOperationException("RabbitMQ:HostName configuration is missing.")
+            //};
+
             var factory = new ConnectionFactory
             {
-                HostName = _configuration["RabbitMQ:HostName"] ?? throw new InvalidOperationException("RabbitMQ:HostName configuration is missing.")
+                HostName = _configuration["RabbitMQ:HostName"]
+                ?? throw new InvalidOperationException(
+                    "RabbitMQ:HostName configuration is missing."),
+
+                UserName = _configuration["RabbitMQ:UserName"]
+                ?? throw new InvalidOperationException(
+                    "RabbitMQ:UserName configuration is missing."),
+
+                Password = _configuration["RabbitMQ:Password"]
+                ?? throw new InvalidOperationException(
+                    "RabbitMQ:Password configuration is missing.")
             };
 
             // Creates the network connection between OrderService and RabbitMQ.
             await using var connection = await factory.CreateConnectionAsync();
             // publisherConfirmationsEnabled true: meaning the publisher will wait for an acknowledgment from the broker that the message has been received and stored. This ensures that messages are not lost in transit. When I publish a message, I want confirmation that RabbitMQ accepted it.
             // publisherConfirmationTrackingEnabled true: meaning the publisher will track the confirmations of the messages it publishes. This allows the publisher to know which messages have been successfully confirmed by the broker. It tells the .NET RabbitMQ client to track those confirmations for us.
-            var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true,publisherConfirmationTrackingEnabled: true);
+            var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
             await using var channel = await connection.CreateChannelAsync(channelOptions);
 
             // Declare a queue named "order-created", where messages will wait.

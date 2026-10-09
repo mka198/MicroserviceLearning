@@ -19,15 +19,32 @@ namespace InventoryService.HealthChecks
             try
             {
                 var hostName = _configuration["RabbitMQ:HostName"];
+                var userName = _configuration["RabbitMQ:UserName"];
+                var password = _configuration["RabbitMQ:Password"];
 
                 if (string.IsNullOrWhiteSpace(hostName))
                 {
-                    return HealthCheckResult.Unhealthy("RabbitMQ:HostName configuration is missing.");
+                    return HealthCheckResult.Unhealthy(
+                        "RabbitMQ:HostName configuration is missing.");
+                }
+
+                if (string.IsNullOrWhiteSpace(userName))
+                {
+                    return HealthCheckResult.Unhealthy(
+                        "RabbitMQ:UserName configuration is missing.");
+                }
+
+                if (string.IsNullOrWhiteSpace(password))
+                {
+                    return HealthCheckResult.Unhealthy(
+                        "RabbitMQ:Password configuration is missing.");
                 }
 
                 var factory = new ConnectionFactory
                 {
-                    HostName = hostName
+                    HostName = hostName,
+                    UserName = userName,
+                    Password = password
                 };
 
                 await using var connection =

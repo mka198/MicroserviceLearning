@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: orderservice
-          image: kabsoft/microservicelearning-orderservice:v2
+          image: kabsoft/microservicelearning-orderservice:v3
           imagePullPolicy: IfNotPresent
 
           ports:
@@ -50,7 +50,19 @@ spec:
               value: "http://+:8080"
 
             - name: RabbitMQ__HostName
-              value: "host.docker.internal"
+              value: "rabbitmq-service"
+
+            - name: RabbitMQ__UserName
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: rabbitmq-username
+
+            - name: RabbitMQ__Password
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: rabbitmq-password
 
             - name: ConnectionStrings__OrderDbConStr
               valueFrom:
