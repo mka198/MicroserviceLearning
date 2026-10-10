@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: sqlserver-deployment
+
+spec:
+  replicas: 1
+
+  # SQL Server uses one persistent disk.
+  # Stop the old pod before creating the replacement pod.
+  strategy:
+    type: Recreate
+
+  selector:
+    matchLabels:
+      app: sqlserver
+
+  template:
+    metadata:
+      labels:
+        app: sqlserver
+
+    spec:
+      # Gives SQL Server permission to write to the mounted storage.
+      securityContext:
+        fsGroup: 10001
+
+      containers:
+        - name: sqlserver
+          image: mcr.microsoft.com/mssql/server:2022-latest
+
+          ports:
+            - containerPort: 1433
+
+          # Gives SQL Server enough time to complete its slow startup.
+          startupProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                  /opt/mssql-tools18/bin/sqlcmd
+                  -S localhost
+                  -U sa
+                  -P "$MSSQL_SA_PASSWORD"
+                  -C
+                  -Q "SELECT 1"
+                  > /dev/null
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+
+          # Ready means SQL Server can execute database queries.
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                  /opt/mssql-tools18/bin/sqlcmd
+                  -S localhost
+                  -U sa
+                  -P "$MSSQL_SA_PASSWORD"
+                  -C
+                  -Q "SELECT 1"
+                  > /dev/null
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # Alive means SQL Server is accepting TCP connections.
+          livenessProbe:
+            tcpSocket:
+              port: 1433
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sqlserver-secrets
+                  key: sa-password
+
+          volumeMounts:
+            - name: sqlserver-data
+              mountPath: /var/opt/mssql
+
+      volumes:
+        - name: sqlserver-data
+          persistentVolumeClaim:
+            claimName: sqlserver-data-pvc

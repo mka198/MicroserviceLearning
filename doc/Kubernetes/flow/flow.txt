@@ -5,3 +5,10 @@ Postman
   → InventoryService pod
   → Inventory database
   → ProcessedMessages
+
+----
+
+  OrderService → Outbox → RabbitMQ → InventoryService
+      ↓                                  ↓
+ Order database                    Inventory database
+          \________ Kubernetes SQL Server ________/
