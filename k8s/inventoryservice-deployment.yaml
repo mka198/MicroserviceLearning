@@ -43,13 +43,12 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
 
+          # Load all non-sensitive settings from the shared ConfigMap.
+          envFrom:
+            - configMapRef:
+                name: microservices-config
+
           env:
-            - name: ASPNETCORE_URLS
-              value: "http://+:8080"
-
-            - name: RabbitMQ__HostName
-              value: "rabbitmq-service"
-
             - name: RabbitMQ__UserName
               valueFrom:
                 secretKeyRef:
