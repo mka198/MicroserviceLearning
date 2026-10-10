@@ -1,0 +1,7 @@
+Only below command need to forward port.
+
+kubectl port-forward -n envoy-gateway-system service/envoy-default-microservices-gateway-63094d12  8088:80
+
+Then in postman:
+http://localhost:8088/api/orders // Create order:
+http://localhost:8088/api/inventory  // Get inventory:

@@ -4,15 +4,21 @@
 > kubectl get pods -A   // A means all namespaces
 > kubectl run my-first-pod --image=nginx // pod created name my-first-pod, inside pod there is image
 > kubectl get pods
+> kubectl get pods -w  // Watch changes live. Stop watching with Ctrl+C
 > kubectl get services
-> kubectl describe pod my-first-pod 
-> kubectl describe service nginx-service
+> kubectl describe pod my-first-pod  //View details:
+> kubectl describe service nginx-service> 
+> kubectl logs deployment/orderservice-deployment // View application logs
+> kubectl delete pod <POD-NAME> //delete pod. The Deployment immediately creates another one. That is Kubernetes self-healing.
+> kubectl scale deployment orderservice-deployment --replicas=0 // To intentionally turn a service off, scale its Deployment to zero
+> kubectl scale deployment orderservice-deployment --replicas=1 // To intentionally turn a service on
+
+
 -----
 > kubectl apply -f .\k8s\nginx-pod.yaml
 > kubectl apply -f .\k8s\nginx-service.yaml
 > kubectl apply -f .\k8s\nginx-deployment.yaml
 Meaning:
-kubectl apply → create or update what the file describes.
+> kubectl apply → create or update what the file describes.
 -f → use a file.
 .\k8s\nginx-pod.yaml → the file(path + name) to use.
-
