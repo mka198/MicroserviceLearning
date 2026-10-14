@@ -13,3 +13,14 @@ spec:
     - name: http
       protocol: HTTP
       port: 80
+
+    # Accept HTTPS traffic and decrypt it using our TLS Secret.
+    - name: https
+      protocol: HTTPS
+      port: 443
+
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: microservices-tls
