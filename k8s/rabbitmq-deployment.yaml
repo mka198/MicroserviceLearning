@@ -41,6 +41,13 @@ spec:
             # RabbitMQ Management website port
             - containerPort: 15672
   
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
           volumeMounts:
             - name: rabbitmq-data
               mountPath: /var/lib/rabbitmq

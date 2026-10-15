@@ -24,6 +24,15 @@ spec:
 
           ports:
             - containerPort: 8080
+          # Minimum resources Kubernetes reserves for this container.
+          # Maximum resources the container is allowed to use.
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
 
           # Checks whether OrderService itself is alive.
           livenessProbe:
