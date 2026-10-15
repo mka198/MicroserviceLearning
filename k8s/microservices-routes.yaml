@@ -7,10 +7,6 @@ metadata:
 spec:
   # Attach these routes to our Gateway.
   parentRefs:
-    # Use the HTTP listener.
-    - name: microservices-gateway
-      sectionName: http
-
     # Use the HTTPS listener.
     - name: microservices-gateway
       sectionName: https
