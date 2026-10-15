@@ -12,3 +12,57 @@ Postman
       ↓                                  ↓
  Order database                    Inventory database
           \________ Kubernetes SQL Server ________/
+
+
+
+-------------------------------------
+Create an order from Postman:
+
+Postman
+  ↓ POST http://localhost:8088/api/orders
+  ↓ port-forward: localhost:8088 → Gateway port 80
+microservices-gateway.yaml
+  ↓ HTTP listener
+http-to-https-redirect.yaml
+  ↓ 301 redirect
+POST https://localhost:8443/api/orders
+  ↓ port-forward: localhost:8443 → Gateway port 443
+microservices-gateway.yaml
+  ↓ HTTPS listener + TLS termination
+microservices-tls Secret
+  ↓
+microservices-routes.yaml
+  ↓ matches /api/orders
+orderservice-service.yaml
+  ↓ Service port 80 → targetPort 8080
+orderservice-deployment.yaml
+  ↓
+OrderService Pod
+  ↓
+OrdersController.CreateOrder()
+  ↓
+Order + OutboxMessage saved in one database transaction
+  ↓
+sqlserver-service.yaml
+  ↓
+Order database
+  ↓
+OutboxPublisherWorker
+  ↓ publishes OrderCreated message
+rabbitmq-service.yaml
+  ↓ port 5672
+rabbitmq-deployment.yaml
+  ↓
+RabbitMQ Pod
+  ↓ order-created queue
+InventoryService consumer
+  ↓
+inventoryservice-deployment.yaml
+  ↓
+InventoryService Pod
+  ↓ reduces product stock
+sqlserver-service.yaml
+  ↓
+Inventory database updated
+  ↓
+ProcessedMessages records MessageId
