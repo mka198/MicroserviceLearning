@@ -1,0 +1,21 @@
+step 2:
+kubectl get pods // check rabbitmq running. if not running then step 2.If its running already, avoid step2.
+
+step2: Start RabbitMQ:
+kubectl scale deployment rabbitmq-deployment --replicas=1
+kubectl get pods -l app=rabbitmq -w
+
+step3:
+Port forwarding:
+kubectl port-forward service/rabbitmq-service 15672:15672
+
+
+Step4: 
+http://localhost:15672  
+User: microservice-user
+pass:123456
+
+
+------------ rabbitMQ off -------
+kubectl scale deployment rabbitmq-deployment --replicas=0
+kubectl get pods -l app=rabbitmq

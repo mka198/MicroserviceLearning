@@ -13,6 +13,20 @@
 > kubectl scale deployment orderservice-deployment --replicas=0 // To intentionally turn a service off, scale its Deployment to zero
 > kubectl scale deployment orderservice-deployment --replicas=1 // To intentionally turn a service on
 
+---  inventory service off -----
+# Temporarily stop InventoryService.
+kubectl scale deployment inventoryservice-deployment --replicas=0
+
+# Confirm its Pod has stopped.
+kubectl get pods -l app=inventoryservice
+
+------------ rabbitMQ off -------
+kubectl scale deployment rabbitmq-deployment --replicas=0
+kubectl get pods -l app=rabbitmq
+---- rabbit mq start:
+step2: Start RabbitMQ:
+kubectl scale deployment rabbitmq-deployment --replicas=1
+kubectl get pods -l app=rabbitmq -w
 
 -----
 > kubectl apply -f .\k8s\nginx-pod.yaml

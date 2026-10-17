@@ -1,0 +1,39 @@
+kubectl get pods // check inventory service running or not, if running then avoid below command.
+
+----------- port forwarding -------
+Inventory and OrderService together through existing Envoy Gateway Port forwarding:
+kubectl port-forward -n envoy-gateway-system service/envoy-default-microservices-gateway-63094d12 8088:80 8443:443
+
+postman:  
+Order:
+through https:
+GET https://localhost:8443/api/orders
+POST https://localhost:8443/api/orders
+
+through http:
+GET http://localhost:8088/api/orders
+POST http://localhost:8088/api/orders
+
+
+Inventory
+http://localhost:8088/api/inventory
+https://localhost:8443/api/inventory
+
+Note: both 8088 for http and 8433 for https will work. http 8088 will redirect to https. https will work directly.
+
+---------------
+# particular inventory service Port-forwarding:
+kubectl port-forward service/inventoryservice 8433:8433
+
+# run inventory service
+kubectl scale deployment inventoryservice-deployment --replicas=1
+kubectl get pods -l app=inventoryservice -w
+
+Postman: GET https://localhost:8443/api/inventory
+
+# Temporarily stop InventoryService.
+kubectl scale deployment inventoryservice-deployment --replicas=0
+
+# Confirm its Pod has stopped.
+kubectl get pods -l app=inventoryservice
+

@@ -19,7 +19,7 @@ Goal:
 6. Configuration
 7. Caching / Redis
 8. Load balancing
-9. Aspire
+9. Aspire (finally I don't know it is relevant, if not I will learn it with separate)
 
 -----------
 Contaioner/Docker, kubernetes, Message Queue(rabbitMQ/or Kafka whatever better suit), overall microservice.

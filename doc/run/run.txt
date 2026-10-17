@@ -1,0 +1,6 @@
+1. Run docker desktop
+2. Run  kubectl get pods  //check orderservice,inventoryservice,rabbitmq,sqlserver is running
+3. run Sqlserver
+4. run RabbitMQ
+5. run OrderSerice
+6. run InventoryService

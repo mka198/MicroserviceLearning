@@ -1,0 +1,12 @@
+.env file: ContainerSql!
+
+--------- port forwarding for sqlserver -----
+# Forward local port 1434 to SQL Server's Kubernetes Service port 1433.
+kubectl port-forward service/sqlserver-service 1434:1433
+
+------- sqlsevrer login --
+Server name	localhost,1434
+Authentication:SQL Server Authentication
+Login: sa
+Password: ContainerSql!
+Trust server certificate: Checked
