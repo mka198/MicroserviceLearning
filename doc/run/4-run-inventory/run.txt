@@ -1,6 +1,6 @@
 kubectl get pods // check inventory service running or not, if running then avoid below command.
 
------------ port forwarding -------
+----------- port forwarding (To run in postman) -------
 Inventory and OrderService together through existing Envoy Gateway Port forwarding:
 kubectl port-forward -n envoy-gateway-system service/envoy-default-microservices-gateway-63094d12 8088:80 8443:443
 
