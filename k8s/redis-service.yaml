@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: redis-service
+
+spec:
+  type: ClusterIP
+
+  # Send traffic to Pods labelled app: redis.
+  selector:
+    app: redis
+
+  ports:
+    - port: 6379
+      targetPort: 6379

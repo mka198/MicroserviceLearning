@@ -1,0 +1,17 @@
+--------------- 1. Create yml file ------
+redis-deployment.yaml
+redis-service.yaml
+
+--------- 2. Run below command----------
+kubectl apply -f redis-deployment.yaml
+kubectl apply -f redis-service.yaml
+kubectl get pods,services -l app=redis
+kubectl get service redis-service
+
+Check Redis responds:
+> kubectl exec deployment/redis-deployment -- redis-cli ping     #expected response: PONG. That means redis working
+
+------------ 3. install package --------
+This adds Microsoft’s Redis integration, which lets you use IDistributedCache to read, save and remove cached data.
+
+<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.13" />

@@ -6,6 +6,7 @@ using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
 using InventoryService.Models;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace InventoryService.Messaging
 {
@@ -22,11 +23,14 @@ namespace InventoryService.Messaging
         private readonly IConfiguration _configuration;
         private readonly ILogger<OrderCreatedConsumer> _logger;
         private const int RetryDelaySeconds = 5; // Wait 5 seconds before trying to connect to RabbitMQ again.
-        public OrderCreatedConsumer(IServiceScopeFactory scopeFactory, IConfiguration configuration, ILogger<OrderCreatedConsumer> logger)
+        private readonly IDistributedCache _cache;
+        private const string InventoryCacheKey = "inventory:all"; // Must match the key in InventoryController.
+        public OrderCreatedConsumer(IServiceScopeFactory scopeFactory, IConfiguration configuration, ILogger<OrderCreatedConsumer> logger, IDistributedCache cache)
         {
             _scopeFactory = scopeFactory;
             _configuration = configuration;
             _logger = logger;
+            _cache = cache;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -241,11 +245,26 @@ namespace InventoryService.Messaging
                     });
 
                     await dbContext.SaveChangesAsync(stoppingToken);
-
                     await transaction.CommitAsync();
-
                     // ===== END INVENTORY + PROCESSED MESSAGE TOGETHER =====
-
+                    // --- redis ------
+                    // SQL now contains the updated stock.
+                    // Remove the cached copy so the next GET reads fresh data.
+                    try
+                    {
+                        await _cache.RemoveAsync(InventoryCacheKey, stoppingToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // The database update succeeded.
+                        // Log cache failure separately so it does not send this order to the DLQ.
+                        // Any old cached value expires within 30 seconds.
+                        _logger.LogWarning(
+                            ex,
+                            "Could not remove inventory cache. MessageId: {MessageId}",
+                            orderMessage.MessageId);
+                    }
+                    // --- end redis ------
 
                     // ACKNOWLEDGEMENT (ACK):
                     // Tell RabbitMQ:

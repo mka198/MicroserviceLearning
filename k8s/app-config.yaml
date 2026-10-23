@@ -7,3 +7,5 @@ metadata:
 data:
   ASPNETCORE_URLS: "http://+:8080"
   RabbitMQ__HostName: "rabbitmq-service"
+  # Redis address inside Kubernetes.
+  ConnectionStrings__Redis: "redis-service:6379"

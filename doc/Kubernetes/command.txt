@@ -6,6 +6,7 @@
 > kubectl get pods
 > kubectl get pods -w  // Watch changes live. Stop watching with Ctrl+C
 > kubectl get services
+> kubectl get pods,services -l app=redis
 > kubectl describe pod my-first-pod  //View details:
 > kubectl describe service nginx-service> 
 > kubectl logs deployment/orderservice-deployment // View application logs
@@ -33,6 +34,6 @@ kubectl get pods -l app=rabbitmq -w
 > kubectl apply -f .\k8s\nginx-service.yaml
 > kubectl apply -f .\k8s\nginx-deployment.yaml
 Meaning:
-> kubectl apply → create or update what the file describes.
--f → use a file.
-.\k8s\nginx-pod.yaml → the file(path + name) to use.
+• kubectl apply → create or update what the file describes.
+• -f → use a file.
+• .\k8s\nginx-pod.yaml → the file(path + name) to use.

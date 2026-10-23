@@ -14,6 +14,16 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("InventoryDbConStr")));
 // End Db connection
 
+// Register Redis caching.
+// Read the Redis address from configuration.
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    // Prefix cache keys to identify InventoryService's cached data.
+    options.InstanceName = "InventoryService:";
+});
+// End Redis caching
+
 //RabbitMQ consumer: Register the OrderCreatedConsumer as a hosted service
 builder.Services.AddHostedService<OrderCreatedConsumer>();
 

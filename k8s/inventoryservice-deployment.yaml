@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: inventoryservice
-          image: kabsoft/microservicelearning-inventoryservice:v3
+          image: kabsoft/microservicelearning-inventoryservice:v5
           imagePullPolicy: IfNotPresent
 
           ports:
