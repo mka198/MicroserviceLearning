@@ -29,6 +29,9 @@ namespace InventoryService.Controllers
         [HttpGet]
         public async Task<IActionResult> GetInventory()
         {
+            Response.Headers["X-Pod-Name"] = Environment.MachineName;  // for load balance checking, to see which pod is serving the request
+
+            // --- redis cache ---
             var cacheUnavailable = false;
             string? cachedJson = null;
 
@@ -79,6 +82,7 @@ namespace InventoryService.Controllers
             }
 
             Response.Headers["X-Cache"] = cacheUnavailable ? "BYPASS" : "MISS"; // MISS: means cache miss, therefore read from SQL
+            //--- End redis cache ---
 
             return Ok(inventory);
         }
@@ -93,7 +97,7 @@ namespace InventoryService.Controllers
             // SQL saved successfully. Cache failure must not fail this request.
             try
             {
-                await _cache.RemoveAsync(InventoryCacheKey);
+                await _cache.RemoveAsync(InventoryCacheKey); // remove redis cache
             }
             catch (Exception ex)
             {

@@ -1,0 +1,18 @@
+For loadbalanceing: only two change below
+
+1. Added below line InventoryController.cs
+Response.Headers["X-Pod-Name"] = Environment.MachineName; // for load balance checking, to see which pod is serving the request
+
+2. k8s/Inventoryservice-deployment.yaml. update replica number.
+replicas: 3  # 3 separate pod, eeach running one InventoryService container.
+
+----------- after change above, run below yaml file to get affect -----
+kubectl apply -f inventoryservice-deployment.yaml
+kubectl rollout status deployment/inventoryservice-deployment
+kubectl get pods -l app=inventoryservice
+
+--------------- to run postman --------
+port forward:
+MicroserviceLearning\k8s> kubectl port-forward -n envoy-gateway-system service/envoy-default-microservices-gateway-63094d12 8088:80 8443:443
+
+GET https://localhost:8443/api/inventory
