@@ -3,6 +3,10 @@ using InventoryService.Data;
 using InventoryService.Messaging;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using InventoryService.HealthChecks;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +45,31 @@ builder.Services.AddHealthChecks()
         tags: new[] { "ready" });
 
 builder.Services.AddOpenApi();
+
+// ===== OpenTelemetry metrics =====
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource
+        .AddService(
+            serviceName: "InventoryService",
+            serviceInstanceId: Environment.MachineName))
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddConsoleExporter((exporterOptions, readerOptions) =>
+        {
+            // Write aggregated metrics every 10 seconds.
+            readerOptions.PeriodicExportingMetricReaderOptions
+                .ExportIntervalMilliseconds = 10000;
+        }))
+    // Update here: trace individual HTTP requests.
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation(options =>
+        {
+            // Exclude regular Kubernetes health checks from traces.
+            options.Filter = context =>
+                !context.Request.Path.StartsWithSegments("/health");
+        })
+        .AddConsoleExporter());
+// ===== End metrics configuration =====
 
 var app = builder.Build();
 

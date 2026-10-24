@@ -33,6 +33,8 @@ kubectl get pods -l app=rabbitmq -w
 > kubectl apply -f .\k8s\nginx-pod.yaml
 > kubectl apply -f .\k8s\nginx-service.yaml
 > kubectl apply -f .\k8s\nginx-deployment.yaml
+> kubectl apply -f inventoryservice-deployment.yaml
+> kubectl rollout status deployment/inventoryservice-deployment
 Meaning:
 • kubectl apply → create or update what the file describes.
 • -f → use a file.

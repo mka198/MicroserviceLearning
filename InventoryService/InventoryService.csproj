@@ -21,6 +21,9 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.18.0" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.18.0" />
+		<PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.18.0" />
 		<PackageReference Include="RabbitMQ.Client" Version="7.2.2" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
 		<PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />

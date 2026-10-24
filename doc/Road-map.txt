@@ -20,7 +20,8 @@ Goal:
 7. Caching / Redis
 8. Load balancing
 9. Microsoft Telemetry
-10. Aspire (finally I don't know it is relevant, if not I will learn it with separate)
+10. Helm
+11. Aspire (finally I don't know it is relevant, if not I will learn it with separate)
 
 
 -----------

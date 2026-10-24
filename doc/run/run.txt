@@ -4,3 +4,12 @@
 4. run RabbitMQ
 5. run OrderSerice
 6. run InventoryService
+
+
+----------- Envoy port forwarding ----
+kubectl port-forward -n envoy-gateway-system service/envoy-default-microservices-gateway-63094d12 8088:80 8443:443
+
+GET https://localhost:8443/api/inventory
+GET http://localhost:8088/api/inventory
+GET https://localhost:8443/api/orders
+GET http://localhost:8088/api/orders
