@@ -1,0 +1,34 @@
+Local
+------
+AppHost is mainly for localhost/development.
+dotnet run --project AppHost.
+
+AppHost
+ ├─ InventoryService
+ ├─ OrderService
+ ├─ PostgreSQL
+ ├─ Redis
+ ├─ Container
+ └─ Dashboard
+
+Production
+In production, Kubernetes, AKS, Azure Container Apps, or another hosting platform typically runs the services.
+----------
+Kubernetes
+ ├─ InventoryService container
+ ├─ OrderService container
+ └─ PostgreSQL
+
+---------------
+Aspire = How services find and talk to each other
+Kubernetes = Where and how services run in production
+
+---------------- DDEV vs Aspire --------
+DDEV: Everything → Docker containers
+Aspire: can run services with or without containers and help them connect to each other
+
+Aspire AppHost
+├─ InventoryService      (normal .NET process)
+├─ OrderService          (normal .NET process)
+├─ PostgreSQL            (Docker container)
+└─ Redis                 (Docker container)

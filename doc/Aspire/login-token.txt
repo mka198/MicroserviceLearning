@@ -1,0 +1,15 @@
+login token:
+88773488dab44b28279581f9140d8f55
+
+to find the login token and login website url(see image):
+> docker logs aspire-dashboard
+
+------------------ Dashboard command -----
+# Start the existing container after stopping it.
+docker start aspire-dashboard
+
+# Find the dashboard login link/token.
+docker logs aspire-dashboard
+
+# Stop the dashboard.
+docker stop aspire-dashboard

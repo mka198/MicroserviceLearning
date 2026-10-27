@@ -54,13 +54,12 @@ builder.Services.AddOpenTelemetry()
             serviceInstanceId: Environment.MachineName))
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
-        .AddConsoleExporter((exporterOptions, readerOptions) =>
+        .AddOtlpExporter((exporterOptions, readerOptions) =>
         {
-            // Write aggregated metrics every 10 seconds.
+            // Send aggregated metrics to the configured OTLP endpoint.
             readerOptions.PeriodicExportingMetricReaderOptions
                 .ExportIntervalMilliseconds = 10000;
         }))
-    // Update here: trace individual HTTP requests.
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation(options =>
         {
@@ -68,7 +67,7 @@ builder.Services.AddOpenTelemetry()
             options.Filter = context =>
                 !context.Request.Path.StartsWithSegments("/health");
         })
-        .AddConsoleExporter());
+        .AddOtlpExporter());
 // ===== End metrics configuration =====
 
 var app = builder.Build();

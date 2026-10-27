@@ -9,3 +9,7 @@ data:
   RabbitMQ__HostName: "rabbitmq-service"
   # Redis address inside Kubernetes.
   ConnectionStrings__Redis: "redis-service:6379"
+
+  # send telemetry to Aspire running on Docker Desktop.
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://host.docker.internal:4317"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
