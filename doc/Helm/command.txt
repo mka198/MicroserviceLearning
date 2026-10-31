@@ -1,0 +1,4 @@
+> helm lint ./helm/inventoryservice  # check error
+
+> helm list --namespace default # Lists Helm releases (deployed applications).
+> helm status inventory --namespace default # status of inventory

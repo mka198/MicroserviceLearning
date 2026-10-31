@@ -1,0 +1,6 @@
+replicaCount: 3
+
+image:
+  repository: kabsoft/microservicelearning-inventoryservice
+  tag: "v10"
+  pullPolicy: IfNotPresent

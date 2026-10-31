@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: inventoryservice-deployment
+
+spec:
+  replicas: {{ .Values.replicaCount }}
+
+  selector:
+    matchLabels:
+      app: inventoryservice
+
+  template:
+    metadata:
+      labels:
+        app: inventoryservice
+
+    spec:
+      containers:
+        - name: inventoryservice
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          # Checks whether the application is alive.
+          # Kubernetes restarts the container if this repeatedly fails.
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          # Checks whether the application is ready to receive requests.
+          # A failing pod is temporarily removed from the Service.
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          # Load all non-sensitive settings from the shared ConfigMap.
+          envFrom:
+            - configMapRef:
+                name: microservices-config
+
+          env:
+            - name: RabbitMQ__UserName
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: rabbitmq-username
+
+            - name: RabbitMQ__Password
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: rabbitmq-password
+
+            - name: ConnectionStrings__InventoryDbConStr
+              valueFrom:
+                secretKeyRef:
+                  name: inventoryservice-secrets
+                  key: inventory-db-connection-string

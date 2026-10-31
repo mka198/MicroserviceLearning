@@ -1,0 +1,55 @@
+https://copilot.cloud.microsoft/chat/conversation/282fbf2a-6b18-47f1-9513-578776b87ee1?fromcode=cmmu8qodiz1&es=UnauthClick
+
+1. What is Helm?
+Helm is a package manager for Kubernetes.
+
+----- to understand better example: -
+you have these files in kubernetes:
+deployment.yaml
+service.yaml
+ingress.yaml
+configmap.yaml
+secret.yaml
+
+then you have to run following command for above yml file:
+> kubectl apply -f deployment.yaml
+> kubectl apply -f service.yaml
+> kubectl apply -f ingress.yaml
+
+If you use helm, Instead of above command seperately, you can done by helm at once with one command.
+Helm deploys everything at once:
+> helm install myapp .
+
+-------  A Helm Chart is like a project/package. -----------
+myapp-chart/
+├── Chart.yaml
+├── values.yaml
+└── templates/
+    ├── deployment.yaml
+    ├── service.yaml
+    └── ingress.yaml
+
+--------------- helm values.yaml file ------
+replicaCount: 3
+
+image:
+  repository: nginx
+  tag: local
+
+Then kubernetes yaml file will be:
+
+spec:
+  replicas: {{ .Values.replicaCount }}
+
+  containers:
+  - image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+
+  ----------- for diff env ------
+  helm/
+├── Chart.yaml
+├── values.yaml
+├── values-local.yaml
+├── values-staging.yaml
+└── values-prod.yaml
+
+
