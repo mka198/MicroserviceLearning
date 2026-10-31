@@ -1,0 +1,21 @@
+If some code has been changed in inventory service project. Then do the following to get the effect
+---------- step 1 (Build and push image)------
+
+cd C:\Users\mka198\dotNet_Project\kab\MicroserviceLearning\InventoryService
+
+> docker build -t kabsoft/microservicelearning-inventoryservice:v10 .
+
+> docker push kabsoft/microservicelearning-inventoryservice:v10
+
+------------- step 2 (Update the image version in kubernetes yml file)--------
+File: k8s/inventoryservice-deployment.yaml
+image: kabsoft/microservicelearning-inventoryservice:v10
+
+------------- step 3 (Apply and verify in kubernetes) -----------
+cd C:\Users\mka198\dotNet_Project\kab\MicroserviceLearning\k8s
+
+kubectl apply -f inventoryservice-deployment.yaml
+
+kubectl rollout status deployment/inventoryservice-deployment
+
+kubectl get pods -l app=inventoryservice

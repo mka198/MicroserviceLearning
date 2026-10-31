@@ -1,0 +1,18 @@
+------------------ Dashboard command -----
+# Start the existing container after stopping it.
+docker start aspire-dashboard
+
+# Find the dashboard login link/token.
+docker logs aspire-dashboard
+
+# Stop the dashboard.
+docker stop aspire-dashboard
+
+------- login --------
+http://localhost:18888
+token:  get by run below command.
+
+> docker logs aspire-dashboard
+
+Note: you do not need port forwarding to run aspire. Its docker command, not kubernetes.
+---------

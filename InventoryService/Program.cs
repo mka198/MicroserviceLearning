@@ -6,6 +6,7 @@ using InventoryService.HealthChecks;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using OpenTelemetry.Logs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,6 +70,18 @@ builder.Services.AddOpenTelemetry()
         })
         .AddOtlpExporter());
 // ===== End metrics configuration =====
+
+// ===== export structured logs to Aspire =====
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    // Include the readable message and logging scope properties.
+    logging.IncludeFormattedMessage = true;
+    logging.IncludeScopes = true;
+
+    // Use the OTLP endpoint already configured in Kubernetes.
+    logging.AddOtlpExporter();
+});
+// ===== End structured logs configuration =====
 
 var app = builder.Build();
 
