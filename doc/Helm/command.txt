@@ -2,3 +2,6 @@
 
 > helm list --namespace default # Lists Helm releases (deployed applications).
 > helm status inventory --namespace default # status of inventory
+
+For future InventoryService changes, edit files under helm/inventoryservice/, then run:
+> helm upgrade inventory ./helm/inventoryservice --namespace default --wait --timeout 5m
