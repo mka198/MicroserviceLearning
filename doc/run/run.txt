@@ -6,10 +6,21 @@
 6. run InventoryService
 
 
------------ Envoy port forwarding ----
-kubectl port-forward -n envoy-gateway-system service/envoy-default-microservices-gateway-63094d12 8088:80 8443:443
+------------------- run ---------
+Step 1: Open Docker Desktop.
 
+Step 2: check all pods are running
+
+cd C:\Users\mka198\dotNet_Project\kab\MicroserviceLearning
+> kubectl get deployments,pods
+
+
+Step 3: Start the Gateway Envoy port-forward:
+> kubectl port-forward -n envoy-gateway-system service/envoy-default-microservices-gateway-63094d12 8088:80 8443:443
+
+Step 4: Open Postman and run:
 GET https://localhost:8443/api/inventory
 GET http://localhost:8088/api/inventory
 GET https://localhost:8443/api/orders
 GET http://localhost:8088/api/orders
+POST http://localhost:8088/api/orders

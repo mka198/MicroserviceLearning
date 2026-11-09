@@ -10,7 +10,9 @@ login:
 Username: guest
 Password: guest
 
-----Kubernetes RabbitMQ: ---
+----Kubernetes RabbitMQ: remeber portforwarding ---
+> kubectl port-forward service/rabbitmq-service 15672:15672
+http://localhost:15672
 User: microservice-user
 pass:123456
 ---

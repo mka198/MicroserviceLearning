@@ -3,5 +3,20 @@
 > helm list --namespace default # Lists Helm releases (deployed applications).
 > helm status inventory --namespace default # status of inventory
 
+------------------ run inventory service ----------
 For future InventoryService changes, edit files under helm/inventoryservice/, then run:
 > helm upgrade inventory ./helm/inventoryservice --namespace default --wait --timeout 5m
+
+How the above command work:
+when you run above command below will happen
+1. Helm reads helm/inventoryservice/values.yaml for settings such as replicas and image version.
+2. Helm renders the templates in the helm/inventoryservice/templates/deployment.yaml and helm/inventoryservice/templates/service.yaml
+3. Helm generates the Kubernetes manifests (Deployment, Service, ConfigMap, Ingress, etc.).
+4. Helm compares the generated manifests with the currently installed release named inventory.
+5. Helm applies any changes to the Kubernetes cluster.
+6. The --wait flag makes Helm wait until all resources are ready.
+7. The --timeout 5m flag tells Helm to wait up to 5 minutes before reporting a failure.
+8. If the release does not exist, Helm installs it; otherwise, Helm upgrades the existing release.
+
+In short: Helm reads values.yaml, renders the templates, generates Kubernetes resources, applies the changes to the cluster, and waits up to 5 minutes for the deployment to become ready.
+

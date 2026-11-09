@@ -1,0 +1,4 @@
+Redis implemented in: InventoryController.cs
+path: C:\Users\mka198\dotNet_Project\kab\MicroserviceLearning\InventoryService\Controllers\InventoryController.cs
+
+configration: program.cs file. Path: C:\Users\mka198\dotNet_Project\kab\MicroserviceLearning\InventoryService\program.cs

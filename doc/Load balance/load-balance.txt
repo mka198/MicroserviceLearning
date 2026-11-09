@@ -1,0 +1,10 @@
+There is not C# code needed to implement load balancing. Its about kubernetes, in Deployment YAML, define-> replicas: 3 and Envoy Gateway.
+
+1. Deployment YAML — creates three Pods
+spec:
+  replicas: 3
+
+2. InventoryController.cs — verifies which Pod responded.
+path: C:\Users\mka198\dotNet_Project\kab\MicroserviceLearning\InventoryService\Controllers\InventoryController.cs
+
+Response.Headers["X-Pod-Name"] = Environment.MachineName;
