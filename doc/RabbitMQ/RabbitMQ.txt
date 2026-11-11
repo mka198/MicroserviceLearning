@@ -16,6 +16,8 @@ http://localhost:15672
 User: microservice-user
 pass:123456
 ---
+----- Apache Kafka -----
+High Performance: Kafka can handle millions of messages per second.
 
 --------------
 Producer → Exchange → Queue → Consumer  # Exchange = Post office

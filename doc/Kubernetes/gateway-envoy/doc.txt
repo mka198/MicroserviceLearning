@@ -1,0 +1,43 @@
+Only below command need to forward port.
+
+kubectl port-forward -n envoy-gateway-system service/envoy-default-microservices-gateway-63094d12  8088:80
+
+Then in postman:
+http://localhost:8088/api/orders // Create order:
+http://localhost:8088/api/inventory  // Get inventory:
+
+---------------------- Envoy ---------
+Think of Envoy Proxy as a high-performance proxy used in modern microservice architectures.
+Envoy is not a gateway, but it can be used as an API Gateway.
+
+
+In my project, Postman calls one address, and Envoy routes /api/orders to OrderService and /api/inventory to InventoryService.
+
+Envoy can handle:
+•	Service discovery
+•	Load balancing
+•	TLS/mTLS
+•	Traffic routing
+•	Retries
+•	Circuit breakers
+•	Observability (metrics, tracing, logs)
+
+What Envoy does:
+• Receives requests.
+• Finds the correct service.
+• Load balances between instances.
+
+-------- In my application envoy -----
+
+					Internet
+    				   |
+  					 Envoy
+    				   |
++---+---+------+----------------+------------
+       |       	   			    |
+Inventory Service    	  Order Service
+
+In this role Envoy behaves like:
+• API Gateway
+• Reverse proxy
+• Load balancer
